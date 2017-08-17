@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.yin.permission_request.NeedPermission;
+import com.yin.permission_request.AsyncPermission;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -13,7 +13,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Permission.with(this).check(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION}, new PermissionCallback() {
+//        Permission.with(this).request(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION}, new PermissionCallback() {
 //            @Override
 //            public void permissionGranted() {
 //                Log.e("aaaaaaaaaaaaaa", "permissionGranted");
@@ -24,11 +24,13 @@ public class MainActivity extends AppCompatActivity {
 //                Log.e("aaaaaaaaaaaaaa", "permissionDenied" + Arrays.toString(grantResults));
 //            }
 //        });
+//        Permission.with(this).request(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION});
 //        Util.afterPermission(this);
+//        Log.e("aaaaaaaaaa", String.valueOf(afterPermission()));
         afterPermission();
     }
 
-    @NeedPermission({Manifest.permission.CAMERA})
+    @AsyncPermission(value = {Manifest.permission.CAMERA}, deniedToast = "Denied")
     public void afterPermission() {
         Log.e("aaaaaaaaaaaaaa", "afterPermission");
     }

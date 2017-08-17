@@ -3,6 +3,9 @@ package com.yin.permission_request;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -32,36 +35,58 @@ public class AspectHelper {
         }
     }
 
-    @Pointcut("execution(@com.yin.permission_request.NeedPermission * *(..)) && @annotation(needPermission)")
-    public void needPermission(NeedPermission needPermission) {
+    @Pointcut("execution(@com.yin.permission_request.AsyncPermission * *(..)) && @annotation(asyncPermission)")
+    public void needPermission(AsyncPermission asyncPermission) {
     }
 
-    @Around("needPermission(needPermission)")
-    public void onRequestPermissionMethod(final ProceedingJoinPoint proceedingJoinPoint, NeedPermission needPermission) throws Throwable {
-        if (needPermission == null) return;
+    @Around("needPermission(asyncPermission)")
+    public void onRequestPermissionMethod(final ProceedingJoinPoint proceedingJoinPoint, final AsyncPermission asyncPermission) throws Throwable {
+        if (asyncPermission == null || asyncPermission.value() == null || asyncPermission.value().length == 0) {
+            proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs());
+        }
         Activity activity = null;
         if (proceedingJoinPoint.getThis() instanceof Activity) {
             activity = (Activity) proceedingJoinPoint.getThis();
         } else if (proceedingJoinPoint.getThis() instanceof Fragment) {
             activity = ((Fragment) proceedingJoinPoint.getThis()).getActivity();
-        } else if (proceedingJoinPoint.getArgs()[0] instanceof Activity) {
-            activity = (Activity) proceedingJoinPoint.getArgs()[0];
-        } else if (proceedingJoinPoint.getArgs()[0] instanceof Fragment) {
-            activity = ((Fragment) proceedingJoinPoint.getArgs()[0]).getActivity();
+        } else {
+            for (int i = 0; i < proceedingJoinPoint.getArgs().length; i++) {
+                if (proceedingJoinPoint.getArgs()[i] instanceof Activity) {
+                    activity = (Activity) proceedingJoinPoint.getArgs()[i];
+                } else if (proceedingJoinPoint.getArgs()[i] instanceof Fragment) {
+                    activity = ((Fragment) proceedingJoinPoint.getArgs()[i]).getActivity();
+                }
+            }
         }
         if (activity != null) {
-            Permission.with(activity).check(needPermission.value(), new PermissionCallback() {
+            final Activity finalActivity = activity;
+            Permission.with(activity).request(asyncPermission.value(), new PermissionCallback() {
                 @Override
                 public void permissionGranted() {
                     try {
                         proceedingJoinPoint.proceed(proceedingJoinPoint.getArgs());
                     } catch (Throwable throwable) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (asyncPermission.deniedToast() != null && asyncPermission.deniedToast().length() != 0) {
+                                    Toast.makeText(finalActivity, asyncPermission.deniedToast(), Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
                     }
                 }
 
                 @Override
                 public void permissionDenied(int[] grantResults) {
-
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (asyncPermission.deniedToast() != null && asyncPermission.deniedToast().length() != 0) {
+                                Toast.makeText(finalActivity, asyncPermission.deniedToast(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 }
             });
         }

@@ -41,10 +41,19 @@ public class Permission {
      * 特殊权限需要单独申请
      *
      * @param permissions
+     */
+    public void request(String[] permissions) {
+        request(permissions, null);
+    }
+
+    /**
+     * 特殊权限需要单独申请
+     *
+     * @param permissions
      * @param callback
      */
-    public void check(String[] permissions, PermissionCallback callback) {
-        if (permissions == null || callback == null || (permissions != null && permissions.length == 0)) {
+    public void request(String[] permissions, PermissionCallback callback) {
+        if (permissions == null || (permissions != null && permissions.length == 0)) {
             return;
         }
         for (int i = 0; i < permissions.length; i++) {
@@ -53,21 +62,29 @@ public class Permission {
             }
         }
         if (!PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, permissions)) {
-            callback.permissionGranted();
+            if (callback != null) {
+                callback.permissionGranted();
+            }
         } else {
             mCallbacks.put(mCallbacks.size(), callback);
             ActivityCompat.requestPermissions(sActivity, permissions, mCallbacks.indexOfValue(callback));
         }
     }
 
-    public void check(String permission, PermissionCallback callback) {
-        if (permission == null || callback == null) {
+    public void request(String permissions) {
+        request(permissions, null);
+    }
+
+    public void request(String permission, PermissionCallback callback) {
+        if (permission == null) {
             return;
         }
         switch (permission) {
             case Manifest.permission.SYSTEM_ALERT_WINDOW:
                 if (!PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, permission) || PermissionUtils.canDrawOverlays(sActivity)) {
-                    callback.permissionGranted();
+                    if (callback != null) {
+                        callback.permissionGranted();
+                    }
                 } else {
                     mCallbacks.put(CODE_REQUEST_SYSTEM_ALERT_WINDOW, callback);
                     alertWindowPermission();
@@ -75,7 +92,9 @@ public class Permission {
                 break;
             case Manifest.permission.WRITE_SETTINGS:
                 if (!PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, permission) || PermissionUtils.canWriteSetting(sActivity)) {
-                    callback.permissionGranted();
+                    if (callback != null) {
+                        callback.permissionGranted();
+                    }
                 } else {
                     mCallbacks.put(CODE_REQUEST_WRITE_SETTING, callback);
                     writeSettingsPermission();
@@ -83,12 +102,29 @@ public class Permission {
                 break;
             default:
                 if (!PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, permission)) {
-                    callback.permissionGranted();
+                    if (callback != null) {
+                        callback.permissionGranted();
+                    }
                 } else {
                     mCallbacks.put(mCallbacks.size(), callback);
                     ActivityCompat.requestPermissions(sActivity, new String[]{permission}, mCallbacks.indexOfValue(callback));
                 }
                 break;
+        }
+    }
+
+    public boolean check(String permissions) {
+        if (permissions == null) {
+            return false;
+        }
+        if (Manifest.permission.SYSTEM_ALERT_WINDOW.equals(permissions) && !PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, new String[]{permissions}) || PermissionUtils.canDrawOverlays(sActivity)) {
+            return true;
+        } else if (Manifest.permission.WRITE_SETTINGS.equals(permissions) && !PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, new String[]{permissions}) || PermissionUtils.canWriteSetting(sActivity)) {
+            return true;
+        } else if (!PermissionUtils.isOverMarshmallow() || PermissionUtils.hasSelfPermissions(sActivity, permissions)) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -99,9 +135,13 @@ public class Permission {
      */
     void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (PermissionUtils.verifyPermissions(grantResults)) {
-            mCallbacks.get(requestCode).permissionGranted();
+            if (mCallbacks.get(requestCode) != null) {
+                mCallbacks.get(requestCode).permissionGranted();
+            }
         } else {
-            mCallbacks.get(requestCode).permissionDenied(grantResults);
+            if (mCallbacks.get(requestCode) != null) {
+                mCallbacks.get(requestCode).permissionDenied(grantResults);
+            }
         }
         mCallbacks.remove(requestCode);
     }

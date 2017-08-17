@@ -10,8 +10,11 @@ import java.lang.annotation.Target;
  * 注解要在activity或Fragment中使用，如果不是需要被注解的函数的第一个参数类型为activity或Fragment
  */
 
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface NeedPermission {
+public @interface AsyncPermission {
+
     String[] value() default "";
+
+    String deniedToast() default "";
 }
