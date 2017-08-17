@@ -1,12 +1,12 @@
 package com.yin.permission_request;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 
 /**
@@ -14,18 +14,18 @@ import android.util.SparseArray;
  */
 public class Permission {
 
-    public static final int CODE_REQUEST_SETTING = -900;
-    public static final int CODE_REQUEST_WRITE_SETTING = -901;
-    public static final int CODE_REQUEST_SYSTEM_ALERT_WINDOW = -902;
+    public static final int CODE_REQUEST_SETTING = 9001;
+    public static final int CODE_REQUEST_WRITE_SETTING = 9002;
+    public static final int CODE_REQUEST_SYSTEM_ALERT_WINDOW = 9003;
 
     private static Permission INSTANCE;
-    private static AppCompatActivity sActivity;
+    private static Activity sActivity;
     private SparseArray<PermissionCallback> mCallbacks = new SparseArray<>();
 
     private Permission() {
     }
 
-    public synchronized static Permission with(AppCompatActivity activity) {
+    public synchronized static Permission with(Activity activity) {
         if (INSTANCE == null) {
             INSTANCE = new Permission();
         }

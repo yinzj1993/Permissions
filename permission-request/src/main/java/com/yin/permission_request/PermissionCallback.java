@@ -7,5 +7,9 @@ package com.yin.permission_request;
 public interface PermissionCallback {
     void permissionGranted();
 
+    /**
+     *
+     * @param grantResults -1:拒绝 0:同意
+     */
     void permissionDenied(int[] grantResults);
 }

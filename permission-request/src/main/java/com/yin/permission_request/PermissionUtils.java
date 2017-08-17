@@ -155,5 +155,4 @@ public final class PermissionUtils {
     public static boolean isOverMarshmallow() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
-
 }
